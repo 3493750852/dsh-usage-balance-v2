@@ -23,7 +23,9 @@
     "client",
     "cordis.patch.yml",
     "README.md",
-    "LICENSE"
+    "README.en.md",
+    "LICENSE",
+    "assets"
   ],
   "repository": {
     "type": "git",

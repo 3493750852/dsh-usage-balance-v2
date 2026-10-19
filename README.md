@@ -1,5 +1,7 @@
 # dsh-usage-balance-v2
 
+中文 | [English](README.en.md)
+
 DSH Web 底部用量条旁的余额/消耗读数插件。
 
 默认嵌在原生统计条的 **token 用量与上下文百分比之间**，沿用原生字号、颜色和分隔符风格：
@@ -9,6 +11,14 @@ DSH Web 底部用量条旁的余额/消耗读数插件。
 ```
 
 三个读数分别是：**本会话消耗**、**本会话总用时**、**剩余余额**；金币/时钟/钱包都是简易内联 SVG 图标。
+
+<p align="center">
+  <img src="assets/preview-inline.png" alt="嵌在官方用量条中的读数" width="438">
+</p>
+
+<p align="center">
+  <img src="assets/preview-details.png" alt="用量与余额详情卡" width="348">
+</p>
 
 点击展开详情卡：
 
