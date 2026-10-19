@@ -1,0 +1,8 @@
+# dsh-usage-balance-v2 bundle patch
+#
+# 安装到某个 profile 后，这一层会把插件插入该 profile 的配置树。
+# 如果本包直接写进 profile 的 package.json dsh.profile.bundles，这个文件会自动应用；
+# 如果只是手工 link，则需要在 profile 的 cordis.patch.yml 里加同样的 insert。
+- insert:
+    - id: dsh-usage-balance-v2
+      name: dsh-usage-balance-v2

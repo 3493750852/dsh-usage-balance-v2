@@ -1,0 +1,49 @@
+{
+  "name": "dsh-usage-balance-v2",
+  "version": "1.0.0",
+  "description": "DSH Web 底部用量条内的余额读数：本会话消耗、本会话总用时、剩余余额与峰谷时段，嵌在官方 token 用量和上下文百分比之间",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "balance",
+    "usage",
+    "peak",
+    "off-peak"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3493750852/dsh-usage-balance-v2.git"
+  },
+  "homepage": "https://github.com/3493750852/dsh-usage-balance-v2#readme",
+  "bugs": {
+    "url": "https://github.com/3493750852/dsh-usage-balance-v2/issues"
+  },
+  "author": "Yxkzx",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "license": "MIT"
+}
