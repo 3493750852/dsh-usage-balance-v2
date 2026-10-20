@@ -38,12 +38,11 @@ DSH Web 底部用量条旁的余额/消耗读数插件。
 
 ## 侧边栏工作区累计
 
-每个工作区标题行的右侧会显示该工作区的累计（该工作区下所有会话之和），保持一行小字：
+每个工作区标题行的右侧会显示该工作区的累计（该工作区下所有会话之和），保持一行小字。下图中工作区名称与具体金额已打码：
 
-```
-Envir              ¥48.14 · 4h25m
-默认工作区         ¥4.90 · 1h8m
-```
+<p align="center">
+  <img src="assets/preview-workspace.png" alt="侧边栏工作区累计（名称与金额已打码）" width="283">
+</p>
 
 读数由配套的 [`workspace-usage-v2/`](workspace-usage-v2) 宿主插件提供：它读取 `.dsh-usage-balance-v2.json`，再按 DSH 的 `workspaceRegistry` 把会话归属到工作区。浏览器会把当前会话的官方 `tokenUsage` / `sessionStats` 值 POST 给它；它按会话取 `max(账本, 官方值)`，因此**某个会话的消耗不会超过其工作区累计**。鼠标悬停到工作区行时，操作按钮会临时盖住累计读数。
 

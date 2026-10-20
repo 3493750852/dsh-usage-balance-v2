@@ -17,12 +17,12 @@ Click the readout to open the details card. There is **no automatic “turn fini
 
 ## Sidebar workspace totals
 
-Each workspace header also gets a one-line lifetime total for all sessions in that workspace:
+Each workspace header also gets a one-line lifetime total for all sessions in that workspace.
+Workspace names and amounts are blurred in the screenshot below:
 
-```
-Envir              ¥48.14 · 4h25m
-default-workspace  ¥4.90 · 1h8m
-```
+<p align="center">
+  <img src="assets/preview-workspace.png" alt="Sidebar workspace totals (names and amounts blurred)" width="283">
+</p>
 
 It is served by the companion [`workspace-usage-v2/`](workspace-usage-v2) host plugin: it reads
 `.dsh-usage-balance-v2.json` and joins sessions through DSH’s `workspaceRegistry`.
