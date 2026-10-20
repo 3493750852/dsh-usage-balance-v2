@@ -24,9 +24,12 @@ Envir              ¥48.14 · 4h25m
 default-workspace  ¥4.90 · 1h8m
 ```
 
-It is served by the companion [`workspace-usage/`](workspace-usage) host plugin: it reads
+It is served by the companion [`workspace-usage-v2/`](workspace-usage-v2) host plugin: it reads
 `.dsh-usage-balance-v2.json` and joins sessions through DSH’s `workspaceRegistry`.
-The label hides while the row is hovered so the row actions have room.
+The browser also posts the open session’s official `tokenUsage` / `sessionStats`
+values; the host stores `max(ledger, official)` per session, so **a session can never
+show a larger cost than its workspace total**. The label hides while the row is
+hovered so the row actions have room.
 
 ## Screenshots
 
@@ -109,16 +112,16 @@ Append to `$env:USERPROFILE\.dsh\profiles\<profile>\cordis.patch.yml`:
 
 ```powershell
 New-Item -ItemType Junction `
-  -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-workspace-usage" `
-  -Target (Join-Path $plugin 'workspace-usage')
+  -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-workspace-usage-v2" `
+  -Target (Join-Path $plugin 'workspace-usage-v2')
 ```
 
 Append to the same `cordis.patch.yml`:
 
 ```yaml
 - insert:
-    - id: dsh-workspace-usage
-      name: dsh-workspace-usage
+    - id: dsh-workspace-usage-v2
+      name: dsh-workspace-usage-v2
 ```
 
 DSH profiles default to `patchReload: live`; save the file and refresh the page. If the readout still does not appear, restart DSH once.
@@ -127,7 +130,7 @@ DSH profiles default to `patchReload: live`; save the file and refresh the page.
 
 ```js
 fetch('/dsh-usage-balance-v2/state.json').then((r) => r.json()).then(console.log)
-fetch('/dsh-workspace-usage/state.json').then((r) => r.json()).then(console.log)
+fetch('/dsh-workspace-usage-v2/state.json').then((r) => r.json()).then(console.log)
 ```
 
 The responses contain `totals`, `session`, `balance`, `pricing`, `lastTurn` and `active`,

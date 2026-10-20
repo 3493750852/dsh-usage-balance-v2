@@ -45,7 +45,7 @@ Envir              ¥48.14 · 4h25m
 默认工作区         ¥4.90 · 1h8m
 ```
 
-读数由配套的 [`workspace-usage/`](workspace-usage) 宿主插件提供：它读取 `.dsh-usage-balance-v2.json`，再按 DSH 的 `workspaceRegistry` 把会话归属到工作区。鼠标悬停到工作区行时，操作按钮会临时盖住累计读数。
+读数由配套的 [`workspace-usage-v2/`](workspace-usage-v2) 宿主插件提供：它读取 `.dsh-usage-balance-v2.json`，再按 DSH 的 `workspaceRegistry` 把会话归属到工作区。浏览器会把当前会话的官方 `tokenUsage` / `sessionStats` 值 POST 给它；它按会话取 `max(账本, 官方值)`，因此**某个会话的消耗不会超过其工作区累计**。鼠标悬停到工作区行时，操作按钮会临时盖住累计读数。
 
 ## 峰谷计价
 
@@ -91,16 +91,16 @@ Web profile 把路径里的 `desktop` 换成 `web`。
 
 ```powershell
 New-Item -ItemType Junction `
-  -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-workspace-usage" `
-  -Target (Join-Path $plugin 'workspace-usage')
+  -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-workspace-usage-v2" `
+  -Target (Join-Path $plugin 'workspace-usage-v2')
 ```
 
 再往同一个 `cordis.patch.yml` 追加：
 
 ```yaml
 - insert:
-    - id: dsh-workspace-usage
-      name: dsh-workspace-usage
+    - id: dsh-workspace-usage-v2
+      name: dsh-workspace-usage-v2
 ```
 
 DSH profile 默认 `patchReload: live`，保存后宿主会热加载；刷新一次页面即可看到读数。
@@ -110,7 +110,7 @@ DSH profile 默认 `patchReload: live`，保存后宿主会热加载；刷新一
 
 ```js
 fetch('/dsh-usage-balance-v2/state.json').then((r) => r.json()).then(console.log)
-fetch('/dsh-workspace-usage/state.json').then((r) => r.json()).then(console.log)
+fetch('/dsh-workspace-usage-v2/state.json').then((r) => r.json()).then(console.log)
 ```
 
 应分别返回 `{ ok: true, totals, balance, pricing, lastTurn, ... }` 和

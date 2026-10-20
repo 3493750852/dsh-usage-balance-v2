@@ -196,6 +196,27 @@ window.__ModuleLoader__.load({
       }, [load]);
       return { snap, error, refreshing, refresh };
     }
+    // The sidebar workspace total is ledger-based (completed turns only); the
+    // open session footer is projection-based and can be larger. Share the live
+    // session values so the active workspace row never shows less than the
+    // session it contains.
+    const liveSessionUsage = { id: "", cost: 0, durationMs: 0 };
+    let lastUsageReport = { key: "", at: 0 };
+    function reportSessionUsage(sessionId, cost, durationMs, tokens) {
+      const key = String(sessionId || "");
+      if (!key) return;
+      const now = Date.now();
+      if (lastUsageReport.key === key && now - lastUsageReport.at < 5000) return;
+      lastUsageReport = { key, at: now };
+      try {
+        fetch("/dsh-workspace-usage-v2/reconcile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId: key, cost, durationMs, tokens }),
+        }).catch(() => {});
+      } catch {}
+    }
+
     const Readout = React.memo(function Readout2({ useProjection }) {
       const { snap, error, refreshing, refresh } = useDashboard();
       const rootRef = React.useRef(null);
@@ -270,6 +291,10 @@ window.__ModuleLoader__.load({
       const sessionDuration = officialStats && (Number(officialStats.llmMs) || Number(officialStats.toolMs))
         ? (Number(officialStats.llmMs) || 0) + (Number(officialStats.toolMs) || 0)
         : session.durationMs;
+      liveSessionUsage.id = String(session.id || snap.session?.id || "");
+      liveSessionUsage.cost = sessionCost;
+      liveSessionUsage.durationMs = sessionDuration;
+      reportSessionUsage(liveSessionUsage.id, sessionCost, sessionDuration, sessionTokens);
       const balanceSub = [];
       if (balOk) {
         if (Number.isFinite(Number(balance.toppedUp))) balanceSub.push("\u5145\u503C " + balanceMoney(balance.toppedUp, balance.currency));
@@ -350,8 +375,15 @@ window.__ModuleLoader__.load({
           if (list.length === 0 || rows.length === 0) return;
           rows.forEach((row, index) => {
             const entry = list[index];
+            const active = !!row.querySelector('[class*="folderActive"]');
+            let cost = entry ? Number(entry.cost) || 0 : 0;
+            let durationMs = entry ? Number(entry.durationMs) || 0 : 0;
+            if (active && liveSessionUsage.id) {
+              cost = Math.max(cost, liveSessionUsage.cost);
+              durationMs = Math.max(durationMs, liveSessionUsage.durationMs);
+            }
             let span = row.querySelector(".dshwb_ws_totals");
-            if (!entry || (!entry.cost && !entry.durationMs)) {
+            if (!cost && !durationMs) {
               if (span) span.remove();
               return;
             }
@@ -362,14 +394,14 @@ window.__ModuleLoader__.load({
               if (actions) row.insertBefore(span, actions);
               else row.appendChild(span);
             }
-            const text = money(entry.cost, "CNY") + " · " + durationShort(entry.durationMs);
+            const text = money(cost, "CNY") + " · " + durationShort(durationMs);
             if (span.textContent !== text) span.textContent = text;
-            span.title = "工作区累计：" + money(entry.cost, "CNY") + " · " + durationShort(entry.durationMs) + " · " + (entry.turns || 0) + " 轮";
+            span.title = "工作区累计：" + money(cost, "CNY") + " · " + durationShort(durationMs) + " · " + (entry ? (entry.turns || 0) : 0) + " 轮";
           });
         };
         const load = async () => {
           try {
-            const res = await fetch("/dsh-workspace-usage/state.json", { cache: "no-store" });
+            const res = await fetch("/dsh-workspace-usage-v2/state.json", { cache: "no-store" });
             if (res.ok) {
               data = await res.json();
               if (!stopped) paint();
