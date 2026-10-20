@@ -36,6 +36,17 @@ DSH Web 底部用量条旁的余额/消耗读数插件。
 
 **不会在每轮结束时弹窗**；所有明细都收在点击展开的详情卡里。
 
+## 侧边栏工作区累计
+
+每个工作区标题行的右侧会显示该工作区的累计（该工作区下所有会话之和），保持一行小字：
+
+```
+Envir              ¥48.14 · 4h25m
+默认工作区         ¥4.90 · 1h8m
+```
+
+读数由配套的 [`workspace-usage/`](workspace-usage) 宿主插件提供：它读取 `.dsh-usage-balance-v2.json`，再按 DSH 的 `workspaceRegistry` 把会话归属到工作区。鼠标悬停到工作区行时，操作按钮会临时盖住累计读数。
+
 ## 峰谷计价
 
 - 高峰：周一至周五（不含法定节假日）**09:00–12:00、14:00–18:00**
@@ -76,16 +87,34 @@ Web profile 把路径里的 `desktop` 换成 `web`。
       name: dsh-usage-balance-v2
 ```
 
+### 3. 安装侧边栏工作区累计（可选）
+
+```powershell
+New-Item -ItemType Junction `
+  -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-workspace-usage" `
+  -Target (Join-Path $plugin 'workspace-usage')
+```
+
+再往同一个 `cordis.patch.yml` 追加：
+
+```yaml
+- insert:
+    - id: dsh-workspace-usage
+      name: dsh-workspace-usage
+```
+
 DSH profile 默认 `patchReload: live`，保存后宿主会热加载；刷新一次页面即可看到读数。
 如果刷新后仍不显示，重启一次 DSH。
 
-### 3. 验证
+### 4. 验证
 
 ```js
 fetch('/dsh-usage-balance-v2/state.json').then((r) => r.json()).then(console.log)
+fetch('/dsh-workspace-usage/state.json').then((r) => r.json()).then(console.log)
 ```
 
-应返回 `{ ok: true, totals, balance, pricing, lastTurn, ... }`。
+应分别返回 `{ ok: true, totals, balance, pricing, lastTurn, ... }` 和
+`{ ok: true, workspaces: [...] }`。
 
 ## 数据文件
 

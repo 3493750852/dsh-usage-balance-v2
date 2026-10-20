@@ -1,0 +1,4 @@
+# dsh-workspace-usage bundle patch
+- insert:
+    - id: dsh-workspace-usage
+      name: dsh-workspace-usage

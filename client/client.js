@@ -16,6 +16,8 @@ window.__ModuleLoader__.load({
         "@keyframes dshub-pop-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}",
         ".dshub_root{display:flex;align-items:center;justify-content:center;width:auto;max-width:none;flex:0 0 auto;box-sizing:border-box;margin:0 8px;padding:0;font-size:var(--dsh-content-font-size-secondary,13px);line-height:calc(20px + var(--dsh-content-font-delta-secondary,0px));color:var(--dsw-alias-label-tertiary);white-space:nowrap;font-variant-numeric:tabular-nums}",
         ".dshub_root:has(.dshub_chip[disabled]){display:none!important}",
+        ".dshwb_ws_totals{flex:none;margin-left:auto;font-size:11px;line-height:20px;color:var(--dsw-alias-label-tertiary);white-space:nowrap;font-variant-numeric:tabular-nums;opacity:.9}",
+        "[role=treeitem][aria-expanded]:hover .dshwb_ws_totals{display:none}",
         ".dshub_anchor{position:relative;display:inline-flex;align-items:center;min-width:0}",
         ".dshub_chip{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:var(--dsw-alias-label-tertiary);font:inherit;line-height:inherit;padding:0 2px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:background-color .12s ease,color .12s ease}",
         ".dshub_chip:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(128,128,128,.10));color:var(--dsw-alias-label-secondary)}",
@@ -334,6 +336,58 @@ window.__ModuleLoader__.load({
       const toastNode = null;
       return /* @__PURE__ */ React.createElement("div", { className: "dshub_root", ref: rootRef }, /* @__PURE__ */ React.createElement("div", { className: "dshub_anchor", ref: anchorRef }, chip, popover), toastNode);
     });
+
+    // 侧边栏工作区行的累计读数。挂在 sidebar.footer.action 上，渲染 null，
+    // 只做 DOM 注入；不依赖 useWorkspaces，避免和 composer 的 hook 组合冲突。
+    function WorkspaceTotals() {
+      React.useEffect(() => {
+        let stopped = false;
+        let timer = 0;
+        let data = { workspaces: [] };
+        const paint = () => {
+          const list = data && Array.isArray(data.workspaces) ? data.workspaces : [];
+          const rows = Array.from(document.querySelectorAll('[role="treeitem"][aria-expanded]'));
+          if (list.length === 0 || rows.length === 0) return;
+          rows.forEach((row, index) => {
+            const entry = list[index];
+            let span = row.querySelector(".dshwb_ws_totals");
+            if (!entry || (!entry.cost && !entry.durationMs)) {
+              if (span) span.remove();
+              return;
+            }
+            const actions = row.querySelector('[class*="rowAction"],[class*="actions"]');
+            if (!span) {
+              span = document.createElement("span");
+              span.className = "dshwb_ws_totals";
+              if (actions) row.insertBefore(span, actions);
+              else row.appendChild(span);
+            }
+            const text = money(entry.cost, "CNY") + " · " + durationShort(entry.durationMs);
+            if (span.textContent !== text) span.textContent = text;
+            span.title = "工作区累计：" + money(entry.cost, "CNY") + " · " + durationShort(entry.durationMs) + " · " + (entry.turns || 0) + " 轮";
+          });
+        };
+        const load = async () => {
+          try {
+            const res = await fetch("/dsh-workspace-usage/state.json", { cache: "no-store" });
+            if (res.ok) {
+              data = await res.json();
+              if (!stopped) paint();
+            }
+          } catch {}
+          if (!stopped) timer = window.setTimeout(load, 6000);
+        };
+        const paintTimer = window.setInterval(paint, 2000);
+        void load();
+        return () => {
+          stopped = true;
+          window.clearTimeout(timer);
+          window.clearInterval(paintTimer);
+        };
+      }, []);
+      return null;
+    }
+
     const inject = ["slots"];
     function apply(ctx) {
       ctx.effect(() => ctx.slots.inject("conversation.composer.dock", () => {
@@ -343,6 +397,13 @@ window.__ModuleLoader__.load({
           order: 1
         }, Readout);
       }), "dsh-usage-balance-v2: composer dock");
+      ctx.effect(() => ctx.slots.inject("sidebar.footer.action", () => {
+        return ctx.slots.register({
+          name: "sidebar.footer.action",
+          id: "dsh-usage-balance-ws",
+          order: 999
+        }, WorkspaceTotals);
+      }), "dsh-usage-balance-v2: sidebar workspace totals");
     }
     exports.apply = apply;
     exports.inject = inject;

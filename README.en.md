@@ -15,6 +15,19 @@ A DSH Web plugin that puts a compact balance / session readout **inside the nati
 
 Click the readout to open the details card. There is **no automatic “turn finished” popup**; all details live in the card.
 
+## Sidebar workspace totals
+
+Each workspace header also gets a one-line lifetime total for all sessions in that workspace:
+
+```
+Envir              ¥48.14 · 4h25m
+default-workspace  ¥4.90 · 1h8m
+```
+
+It is served by the companion [`workspace-usage/`](workspace-usage) host plugin: it reads
+`.dsh-usage-balance-v2.json` and joins sessions through DSH’s `workspaceRegistry`.
+The label hides while the row is hovered so the row actions have room.
+
 ## Screenshots
 
 <p align="center">
@@ -92,15 +105,33 @@ Append to `$env:USERPROFILE\.dsh\profiles\<profile>\cordis.patch.yml`:
       name: dsh-usage-balance-v2
 ```
 
+### 3. Install the sidebar workspace totals (optional)
+
+```powershell
+New-Item -ItemType Junction `
+  -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-workspace-usage" `
+  -Target (Join-Path $plugin 'workspace-usage')
+```
+
+Append to the same `cordis.patch.yml`:
+
+```yaml
+- insert:
+    - id: dsh-workspace-usage
+      name: dsh-workspace-usage
+```
+
 DSH profiles default to `patchReload: live`; save the file and refresh the page. If the readout still does not appear, restart DSH once.
 
-### 3. Verify
+### 4. Verify
 
 ```js
 fetch('/dsh-usage-balance-v2/state.json').then((r) => r.json()).then(console.log)
+fetch('/dsh-workspace-usage/state.json').then((r) => r.json()).then(console.log)
 ```
 
-The response contains `totals`, `session`, `balance`, `pricing`, `lastTurn` and `active`.
+The responses contain `totals`, `session`, `balance`, `pricing`, `lastTurn` and `active`,
+and `workspaces` respectively.
 
 ## Data and privacy
 
