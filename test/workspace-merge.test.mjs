@@ -4,13 +4,14 @@ import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 
-const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dshwuv2-'))
+const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dshubmerge-'))
 fs.writeFileSync(path.join(home, '.dsh-usage-balance-v2.json'), JSON.stringify({
   sessions: {
     s1: { cost: 1.25, durationMs: 30000, tokens: 400, turns: 1 },
     s2: { cost: 2.25, durationMs: 90000, tokens: 600, turns: 1 },
   },
-  totals: { cost: 3.5 },
+  totals: { cost: 3.5, durationMs: 120000, tokens: 1000, turns: 2 },
+  today: { day: '2026-10-21', cost: 3.5, durationMs: 120000, tokens: 1000, turns: 2 },
 }), 'utf8')
 process.env.DSH_HOME = home
 
@@ -33,11 +34,9 @@ function harness() {
       return null
     },
     effect(fn) { return fn() },
-    webServer: {
-      register(route) { routes.set(route.path, route); return () => {} },
-    },
+    webServer: { register(route) { routes.set(route.path, route); return () => {} } },
   }
-  apply({ inject(_names, cb) { cb(ctx) } })
+  apply({ inject(_names, cb) { cb(ctx) }, effect(fn) { return fn() } })
   return routes
 }
 
@@ -60,22 +59,22 @@ function call(route, { method = 'GET', body } = {}) {
   })
 }
 
-test('工作区取 ledger 与官方会话值的较大者', async () => {
+test('主包内提供工作区聚合与官方值校正', async () => {
   const routes = harness()
-  let body = await call(routes.get('/dsh-workspace-usage-v2/state.json'))
-  assert.equal(body.body.workspaces[0].cost, 1.25)
+  let result = await call(routes.get('/dsh-workspace-usage-v2/state.json'))
+  assert.equal(result.body.ok, true)
+  assert.equal(result.body.workspaces[0].cost, 1.25)
+  assert.equal(result.body.workspaces[1].cost, 2.25)
 
   await call(routes.get('/dsh-workspace-usage-v2/reconcile'), {
     method: 'POST',
     body: { sessionId: 's1', cost: 9.9, durationMs: 600000, tokens: 5000 },
   })
-  body = await call(routes.get('/dsh-workspace-usage-v2/state.json'))
-  assert.equal(body.body.workspaces[0].cost, 9.9)
-  assert.equal(body.body.workspaces[0].durationMs, 600000)
-  assert.equal(body.body.workspaces[1].cost, 2.25)
-})
+  result = await call(routes.get('/dsh-workspace-usage-v2/state.json'))
+  assert.equal(result.body.workspaces[0].cost, 9.9)
+  assert.equal(result.body.workspaces[0].durationMs, 600000)
+  assert.equal(result.body.workspaces[1].cost, 2.25)
 
-test('POST 后的 overlay 落盘', () => {
   const overlay = JSON.parse(fs.readFileSync(path.join(home, '.dsh-workspace-usage-reconciled.json'), 'utf8'))
   assert.equal(overlay.sessions.s1.cost, 9.9)
 })

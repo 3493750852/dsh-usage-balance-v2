@@ -1,7 +1,7 @@
 {
   "name": "dsh-usage-balance-v2",
-  "version": "1.0.0",
-  "description": "DSH Web 底部用量条内的余额读数：本会话消耗、本会话总用时、剩余余额与峰谷时段，嵌在官方 token 用量和上下文百分比之间",
+  "version": "1.1.0",
+  "description": "DSH Web 底部用量条内的余额读数与侧边栏工作区累计：本会话消耗、用时、余额、峰谷时段，按工作区汇总",
   "keywords": [
     "dsh",
     "dsh-plugin",

@@ -44,7 +44,7 @@ DSH Web 底部用量条旁的余额/消耗读数插件。
   <img src="assets/preview-workspace.png" alt="侧边栏工作区累计（名称与金额已打码）" width="283">
 </p>
 
-读数由配套的 [`workspace-usage-v2/`](workspace-usage-v2) 宿主插件提供：它读取 `.dsh-usage-balance-v2.json`，再按 DSH 的 `workspaceRegistry` 把会话归属到工作区。浏览器会把当前会话的官方 `tokenUsage` / `sessionStats` 值 POST 给它；它按会话取 `max(账本, 官方值)`，因此**某个会话的消耗不会超过其工作区累计**。鼠标悬停到工作区行时，操作按钮会临时盖住累计读数。
+读数由**主包内置**的宿主路由提供：它读取 `.dsh-usage-balance-v2.json`，再按 DSH 的 `workspaceRegistry` 把会话归属到工作区。浏览器会把当前会话的官方 `tokenUsage` / `sessionStats` 值 POST 给它；它按会话取 `max(账本, 官方值)`，因此**某个会话的消耗不会超过其工作区累计**。鼠标悬停到工作区行时，操作按钮会临时盖住累计读数。
 
 ## 峰谷计价
 
@@ -70,10 +70,9 @@ DSH Web 底部用量条旁的余额/消耗读数插件。
 
 ```powershell
 dsh plugin --profile web add dsh-usage-balance-v2
-dsh plugin --profile web add dsh-workspace-usage-v2
 ```
 
-第一条安装底部读数，第二条安装侧边栏工作区累计。桌面 profile 把 `web` 换成 `desktop`。
+一个包同时包含底部读数和侧边栏工作区累计。桌面 profile 把 `web` 换成 `desktop`。
 
 ### 1. 或者从源码克隆并链接
 
@@ -95,26 +94,12 @@ Web profile 把路径里的 `desktop` 换成 `web`。
       name: dsh-usage-balance-v2
 ```
 
-### 3. 安装侧边栏工作区累计（可选）
-
-```powershell
-New-Item -ItemType Junction `
-  -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-workspace-usage-v2" `
-  -Target (Join-Path $plugin 'workspace-usage-v2')
-```
-
-再往同一个 `cordis.patch.yml` 追加：
-
-```yaml
-- insert:
-    - id: dsh-workspace-usage-v2
-      name: dsh-workspace-usage-v2
-```
+侧边栏工作区累计已经包含在主包里，不需要额外安装。
 
 DSH profile 默认 `patchReload: live`，保存后宿主会热加载；刷新一次页面即可看到读数。
 如果刷新后仍不显示，重启一次 DSH。
 
-### 4. 验证
+### 3. 验证
 
 ```js
 fetch('/dsh-usage-balance-v2/state.json').then((r) => r.json()).then(console.log)

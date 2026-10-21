@@ -24,7 +24,7 @@ Workspace names and amounts are blurred in the screenshot below:
   <img src="assets/preview-workspace.png" alt="Sidebar workspace totals (names and amounts blurred)" width="283">
 </p>
 
-It is served by the companion [`workspace-usage-v2/`](workspace-usage-v2) host plugin: it reads
+It is served by a host route built into the main package: it reads
 `.dsh-usage-balance-v2.json` and joins sessions through DSH’s `workspaceRegistry`.
 The browser also posts the open session’s official `tokenUsage` / `sessionStats`
 values; the host stores `max(ledger, official)` per session, so **a session can never
@@ -90,10 +90,9 @@ The plugin has no `@deepseek-ai/*` npm dependency, so it does not trigger DSH’
 
 ```powershell
 dsh plugin --profile web add dsh-usage-balance-v2
-dsh plugin --profile web add dsh-workspace-usage-v2
 ```
 
-The first installs the bottom readout; the second installs the sidebar workspace totals.
+One package now contains both the bottom readout and the sidebar workspace totals.
 Use `desktop` instead of `web` for the desktop profile.
 
 ### 1. Or clone and link from source
@@ -118,25 +117,11 @@ Append to `$env:USERPROFILE\.dsh\profiles\<profile>\cordis.patch.yml`:
       name: dsh-usage-balance-v2
 ```
 
-### 3. Install the sidebar workspace totals (optional)
-
-```powershell
-New-Item -ItemType Junction `
-  -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-workspace-usage-v2" `
-  -Target (Join-Path $plugin 'workspace-usage-v2')
-```
-
-Append to the same `cordis.patch.yml`:
-
-```yaml
-- insert:
-    - id: dsh-workspace-usage-v2
-      name: dsh-workspace-usage-v2
-```
+The sidebar workspace totals are included in the main package; no extra install is needed.
 
 DSH profiles default to `patchReload: live`; save the file and refresh the page. If the readout still does not appear, restart DSH once.
 
-### 4. Verify
+### 3. Verify
 
 ```js
 fetch('/dsh-usage-balance-v2/state.json').then((r) => r.json()).then(console.log)
