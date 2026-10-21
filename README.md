@@ -66,7 +66,16 @@ DSH Web 底部用量条旁的余额/消耗读数插件。
 
 本插件不依赖任何 `@deepseek-ai/*` npm 包，不会触发 DSH 的版本兼容性拦截。
 
-### 1. 克隆并链接到目标 profile
+### npm 安装（推荐）
+
+```powershell
+dsh plugin --profile web add dsh-usage-balance-v2
+dsh plugin --profile web add dsh-workspace-usage-v2
+```
+
+第一条安装底部读数，第二条安装侧边栏工作区累计。桌面 profile 把 `web` 换成 `desktop`。
+
+### 1. 或者从源码克隆并链接
 
 ```powershell
 git clone https://github.com/3493750852/dsh-usage-balance-v2.git

@@ -86,7 +86,17 @@ The table, peak hours and holiday list live in `lib/pricing.mjs` (`PRICING`, `PE
 
 The plugin has no `@deepseek-ai/*` npm dependency, so it does not trigger DSH’s peer-version compatibility gate.
 
-### 1. Clone and link it into the target profile
+### Install from npm (recommended)
+
+```powershell
+dsh plugin --profile web add dsh-usage-balance-v2
+dsh plugin --profile web add dsh-workspace-usage-v2
+```
+
+The first installs the bottom readout; the second installs the sidebar workspace totals.
+Use `desktop` instead of `web` for the desktop profile.
+
+### 1. Or clone and link from source
 
 ```powershell
 git clone https://github.com/3493750852/dsh-usage-balance-v2.git
